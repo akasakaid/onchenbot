@@ -20,7 +20,7 @@ kuning = Fore.LIGHTYELLOW_EX
 biru = Fore.LIGHTBLUE_EX
 reset = Style.RESET_ALL
 
-peer = "pixelversexyzbot"
+peer = "onchaincoin_bot"
 
 
 class OnchainBot:
