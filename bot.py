@@ -120,9 +120,9 @@ class OnchainBot:
         clicks = res.json()["user"]["clicks"]
         coins = res.json()["user"]["coins"]
         self.log(f"{hijau}full name : {putih}:{name}")
-        self.log(f"{putih}coins : {hijau}{coins}")
-        self.log(f"{putih}clicks : {hijau}{clicks}")
-        self.log(f"{putih}energy : {hijau}{energy}")
+        self.log(f"{putih}total coins : {hijau}{coins}")
+        self.log(f"{putih}total clicks : {hijau}{clicks}")
+        self.log(f"{putih}total energy : {hijau}{energy}")
         print("~" * 50)
 
     def on_login(self):
