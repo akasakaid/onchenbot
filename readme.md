@@ -2,6 +2,10 @@
 
 Auto tap-tap for onchaincoin_bot telegram.
 
+<center>
+<img src="./images/onchain.png" width="500" height="500">
+</center>
+
 ## Reminder
 > I am not responsible for what happens on your account.
 
@@ -19,15 +23,11 @@ Auto tap-tap for onchaincoin_bot telegram.
 	```
 	cd onchaincoin_bot
 	```
-4. This is optional step but its recommend to use. Create a virtual environment.
-	```
-	python -m venv env
-	```
-5. Install library / module.
+4. Install library / module.
 	```
 	pip install -r requirements.txt
 	```
-6. Run the program
+5. Run the program
 	```
 	python bot.py
 	```
@@ -38,3 +38,15 @@ Auto tap-tap for onchaincoin_bot telegram.
 | interval   | delay between every click or request                 |
 | sleep      | delay if you energy is empty or react minimum energy |
 | min_energy | minimum energy to enter sleep mode                   |
+
+## Support
+
+To support me you can buy me a coffee via website in below:
+ - [https://trakteer.id/fawwazthoerif/tip](https://trakteer.id/fawwazthoerif/tip)
+ - [https://sociabuzz.com/fawwazthoerif/tribe](https://sociabuzz.com/fawwazthoerif/tribe)
+
+## Report
+
+If you get error you can contact me on my social media in my github profile
+
+## Thank you < 3
