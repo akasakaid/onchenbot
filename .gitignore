@@ -1,0 +1,6 @@
+env
+session
+*.session
+*.session-journal
+req
+tg_data
