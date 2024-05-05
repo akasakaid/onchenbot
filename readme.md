@@ -6,6 +6,9 @@ Auto tap-tap for onchaincoin_bot telegram.
 <img src="./images/onchain.png" width="500" height="500">
 </center>
 
+## Start the bot
+[https://t.me/onchaincoin_bot?start=user_629438076](https://t.me/onchaincoin_bot?start=user_629438076)
+
 ## Reminder
 > I am not responsible for what happens on your account.
 
