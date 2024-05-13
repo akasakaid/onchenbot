@@ -4,3 +4,5 @@ session
 *.session-journal
 req
 tg_data
+token
+token.json
