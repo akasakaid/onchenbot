@@ -1,16 +1,12 @@
-import sys
 import os
+import sys
 import json
 import time
-import requests
 import random
-from base64 import b64decode
+import requests
 from urllib.parse import unquote
-from telethon import TelegramClient, sync, events
-from telethon.tl.functions.messages import RequestWebViewRequest
-from telethon.errors import SessionPasswordNeededError
-from phonenumbers import is_valid_number as valid_number, parse as pp
 from colorama import *
+from base64 import b64decode
 
 init(autoreset=True)
 
@@ -21,14 +17,38 @@ kuning = Fore.LIGHTYELLOW_EX
 biru = Fore.LIGHTBLUE_EX
 reset = Style.RESET_ALL
 
-peer = "onchaincoin_bot"
+
+class ConfigModel:
+    def __init__(
+        self,
+        interval: int,
+        sleep: int,
+        min_energy: int,
+        start_range: int,
+        end_range: int,
+    ):
+        self.interval = interval
+        self.sleep = sleep
+        self.min_energy = min_energy
+        self.start_range = start_range
+        self.end_range = end_range
 
 
-class OnchainBot:
+class Onchain:
     def __init__(self):
-        self.tg_data = None
-        self.bearer = None
-        self.peer = "onchaincoin_bot"
+        self.headers = {
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:125.0) Gecko/20100101 Firefox/125.0",
+            "accept": "application/json, text/plain, */*",
+            "accept-language": "en-US,en;q=0.5",
+            "content-type": "application/json",
+            "origin": "https://db4.onchaincoin.io",
+            "referer": "https://db4.onchaincoin.io/",
+            "sec-fetch-dest": "empty",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-site": "same-origin",
+            "te": "trailers",
+        }
+        self.has_recovery = False
 
     def log(self, message):
         year, mon, day, hour, minute, second, a, b, c = time.localtime()
@@ -50,243 +70,196 @@ class OnchainBot:
             time.sleep(1)
         print("                          ", flush=True, end="\r")
 
-    def login(self, phone):
-        session_folder = "session"
-        api_id = 2040
-        api_hash = "b18441a1ff607e10a989891a5462e627"
+    def parser_data(self, data):
+        output = {}
 
-        if not os.path.exists(session_folder):
-            os.makedirs(session_folder)
+        for i in unquote(data).split("&"):
+            key, value = i.split("=")
+            output[key] = value
 
-        if not valid_number(pp(phone)):
-            self.log(f"{merah}phone number invalid !")
+        return output
+
+    def is_expired(self, token):
+        header, payload, sign = token.split(".")
+        depayload = b64decode(payload + "==").decode("utf-8")
+        jepayload = json.loads(depayload)
+        exp = jepayload["exp"]
+        now = int(time.time())
+        if now > int(exp):
+            return True
+
+        return False
+
+    def refresh_token(self):
+        data = open("")
+
+    def main(self):
+        banner = f"""
+    {putih}AUTO TAP-TAP {hijau}ONCHAIN BOT 
+    
+    {putih}By: {hijau}t.me/AkasakaID
+    {putih}Github: {hijau}@AkasakaID
+    
+    {hijau}Message: {putih}Don't forget to 'git pull' maybe i update the bot !
+        """
+        if len(sys.argv) <= 1:
+            os.system("cls" if os.name == "nt" else "clear")
+        print(banner)
+        if not os.path.exists("data"):
+            self.log(f"{merah}'data' file is not found !")
+            open("data", "a")
+
+        data = open("data", "r").read()
+        if len(data) <= 0:
+            self.log(f"{kuning}please fill 'data' file with your telegram data !")
             sys.exit()
 
-        client = TelegramClient(
-            f"{session_folder}/{phone}", api_id=api_id, api_hash=api_hash
-        )
-        client.connect()
-        if not client.is_user_authorized():
-            try:
-                client.send_code_request(phone)
-                code = input(f"{putih}input login code : ")
-                client.sign_in(phone=phone, code=code)
-            except SessionPasswordNeededError:
-                pw2fa = input(f"{putih}input password 2fa : ")
-                client.sign_in(phone=phone, password=pw2fa)
+        if not os.path.exists("token"):
+            self.log(f"{kuning}token file is not found !")
+            open("token", "a")
+            
+        ua = open('user-agent','r').read()
+        if ua.find('#') >= 0:
+            self.log(f"{kuning}please, fill your user-agent to user-agent file !")
+            sys.exit()
 
-        me = client.get_me()
-        first_name = me.first_name
-        last_name = me.last_name
-        username = me.username
-        self.log(f"{putih}Login as {hijau}{first_name} {last_name}")
-        res = client(
-            RequestWebViewRequest(
-                peer=self.peer,
-                bot=self.peer,
-                platform="Android",
-                url="https://db4.onchaincoin.io/",
-                from_bot_menu=False,
+        token = open("token", "r").read()
+        if len(token) <= 0:
+            self.login(data)
+            token = open("token", "r").read()
+
+        if self.is_expired(token):
+            self.login(data)
+            token = open("token", "r").read()
+
+        config = json.loads(open("config.json").read())
+        interval = config["interval"]
+        sleep = config["sleep"]
+        min_energy = config["min_energy"]
+        click_range = config["click_range"]
+        start = click_range["start"]
+        end = click_range["end"]
+        cfg = ConfigModel(interval, sleep, min_energy, start, end)
+        if int(start) > int(end):
+            self.log(
+                f"{merah}the value of click range end must be higher than start value !"
             )
-        )
-        self.tg_data = unquote(res.url.split("#tgWebAppData=")[1]).split(
-            "&tgWebAppVersion="
-        )[0]
-        # print(self.tg_data)
-        return self.tg_data
-
-    def get_info(self,bearer):
-        _url = "https://db4.onchaincoin.io/api/info"
-        _headers = {
-            "user-agent": "Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36",
-            "accept": "application/json, text/plain, */*",
-            "accept-language": "en-US,en;q=0.5",
-            "authorization": f"Bearer {bearer}",
-            "referer": "https://db4.onchaincoin.io/",
-            "sec-fetch-dest": "empty",
-            "sec-fetch-mode": "cors",
-            "sec-fetch-site": "same-origin",
-            "te": "trailers",
-            "content-length": "0",
-        }
-        res = requests.get(_url, headers=_headers, timeout=100)
-        if res.status_code != 200:
-            if "Invalid token" in res.text:
-                return "need_reauth"
-
-        name = res.json()["user"]["fullName"]
-        energy = res.json()["user"]["energy"]
-        max_energy = res.json()["user"]["maxEnergy"]
-        league = res.json()["user"]["league"]
-        clicks = res.json()["user"]["clicks"]
-        coins = res.json()["user"]["coins"]
-        self.log(f"{hijau}full name : {putih}:{name}")
-        self.log(f"{putih}total coins : {hijau}{coins}")
-        self.log(f"{putih}total clicks : {hijau}{clicks}")
-        self.log(f"{putih}total energy : {hijau}{energy}")
+            sys.exit()
+        self.get_me(token)
         print("~" * 50)
+        while True:
+            if self.is_expired(token):
+                self.login(data)
+                token = open("token", "r").read()
 
-    def on_login(self,tg_data):
-        _url = "https://db4.onchaincoin.io/api/validate"
-        _data = {"hash": tg_data}
-        _headers = {
-            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:125.0) Gecko/20100101 Firefox/125.0",
-            "accept": "application/json, text/plain, */*",
-            "accept-language": "en-US,en;q=0.5",
-            "content-type": "application/json",
-            "content-length": str(len(json.dumps(_data))),
-            "origin": "https://db4.onchaincoin.io",
-            "referer": "https://db4.onchaincoin.io/",
-            "sec-fetch-dest": "empty",
-            "sec-fetch-mode": "cors",
-            "sec-fetch-site": "same-origin",
-            "te": "trailers",
-        }
-        res = requests.post(_url, json=_data, headers=_headers, timeout=100)
-        if res.status_code != 200:
-            print(res.text)
-            sys.exit()
+            self.click(token, cfg)
+            print("~" * 50)
+            self.countdown(cfg.interval)
 
-        if res.json()["success"] is False:
-            print(res.text)
-            sys.exit()
+    def get_me(self, token, show_name=False):
+        headers = self.headers
+        headers["authorization"] = f"Bearer {token}"
+        res = self.http("https://db4.onchaincoin.io/api/info", headers)
+        if '"success":true' in res.text:
+            name = res.json()["user"]["fullName"]
+            clicks = res.json()["user"]["clicks"]
+            energy = res.json()["user"]["energy"]
+            refill = res.json()["user"]["dailyEnergyRefill"]
+            if refill >= 1:
+                self.has_recovery = True
 
-        open('token','w').write(res.json()['token'])
-        token = res.json()['token']
-        header,payload,sign = token.split('.')
-        decode = b64decode(payload + '==').decode('utf-8')
-        gelo = json.loads(decode)
-        gelo["token"] = token
-        open('token.json','w').write(json.dumps(gelo,indent=4))
-        return True
-        
-    def click(self,bearer,click,min_energy):
-        url = "https://db4.onchaincoin.io/api/klick/myself/click"
-        _headers = {
-            "user-agent": "Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36",
-            "accept": "application/json, text/plain, */*",
-            "accept-language": "en-US,en;q=0.5",
-            "content-type": "application/json",
-            "authorization": f"Bearer {bearer}",
-            "content-length": "12",
-            "origin": "https://db4.onchaincoin.io",
-            "referer": "https://db4.onchaincoin.io/",
-            "sec-fetch-dest": "empty",
-            "sec-fetch-mode": "cors",
-            "sec-fetch-site": "same-origin",
-            "te": "trailers",
-        }
+            self.log(f"{hijau}login as : {putih}{name}")
+            return True
 
-        try:
-            _data = {"clicks": click}
-            res = requests.post(url, json=_data, headers=_headers, timeout=10)
+        self.log(
+            f"{merah}failed fetch data info !, http status code : {kuning}{res.status_code}"
+        )
+        return False
 
-            if "Insufficient energy" in res.text:
-                self.log(merah + "Insufficient energy")
-                return "insufficient_energy"
-
+    def click(self, token: str, cfg: ConfigModel):
+        _click = random.randint(cfg.start_range, cfg.end_range)
+        data = {"clicks": _click}
+        headers = self.headers
+        headers["authorization"] = f"Bearer {token}"
+        headers["content-length"] = str(len(json.dumps(data)))
+        res = self.http(
+            "https://db4.onchaincoin.io/api/klick/myself/click",
+            headers,
+            json.dumps(data),
+        )
+        if '"clicks"' in res.text:
             clicks = res.json()["clicks"]
-            coins = res.json()["coins"]
             energy = res.json()["energy"]
-            self.log(f"{hijau}click : {putih}{click}")
-            self.log(f"{hijau}total clicks : {putih}{clicks}")
-            self.log(f"{hijau}total coins : {putih}{coins}")
+            coins = res.json()["coins"]
+            self.log(f"{hijau}total click : {putih}{clicks}")
+            self.log(f"{hijau}total coin : {putih}{coins}")
             self.log(f"{hijau}remaining energy : {putih}{energy}")
-            if int(energy) < min_energy:
-                return 'energy_limit'
+            if cfg.min_energy >= int(energy):
+                if self.has_recovery:
+                    headers["content-length"] = str(len(json.dumps({})))
+                    self.http(
+                        "https://db4.onchaincoin.io/api/boosts/energy",
+                        headers=headers,
+                        data=json.dumps({}),
+                    )
+                    self.has_recovery = False
+                    return True
+
+                self.countdown(cfg.sleep)
 
             return True
 
-        except (
-            requests.exceptions.ReadTimeout,
-            requests.exceptions.ConnectionError,
-            requests.exceptions.ConnectTimeout,
-        ) as e:
-            self.log(f"{merah} {e}")
-            return False
-    
-    def refresh_token(self):
-        data = json.loads(open('token.json','r').read())
-        return data
-            
-    def main(self):
-        banner = f"""
-    {hijau}Auto tap-tap @onchaincoin_bot
-    
-    {biru}By t.me/AkasakaID
-    github : @AkasakaiD{reset}
+        if "Insufficient energy" in res.text:
+            self.log(f"{kuning}Insufficient energy")
+            self.countdown(cfg.sleep)
+            return True
 
-    {kuning}Warning
-    All risks are borne by the user
-        """
-        os.system('cls' if os.name == 'nt' else 'clear')
-        print(banner) 
+        self.log(
+            f"{merah}failed to click, http status code : {kuning}{res.status_code}"
+        )
+        return False
 
-        if not os.path.exists("tg_data"):
-            print(f"{putih}example input : +628169696969")
-            phone = input(f"{hijau}input telegram phone number : {putih}")
-            print()
-            data = self.login(phone)
-            open("tg_data", "w").write(data)
-        
-        if not os.path.exists('token.json'):
-            open('token.json','w').write(json.dumps({
-                "username":"",
-                "id":"",
-                "iat": "1600000000",
-                "exp": "1600000000"
-            }))
-
-        tg_data = open("tg_data", "r").read()
-        read_config = open("config.json", "r").read()
-        load_config = json.loads(read_config)
-        interval = load_config["interval"]
-        sleep = load_config["sleep"]
-        min_energy = load_config["min_energy"]
-        click_range = load_config["click_range"]
-        start = click_range["start"]
-        end = click_range["end"]
-        if int(start) > int(end):
-            self.log(f'{merah}the value of click range end must be higher than start value !')
-            sys.exit()
-
-        token = self.refresh_token()
-        if int(time.time()) > int(token['exp']):
-            self.on_login(tg_data)
-            token = self.refresh_token()
-        
-        self.get_info(token['token'])
-
+    def login(self, data):
+        data = {"hash": data}
+        headers = self.headers
+        headers["content-length"] = str(len(json.dumps(data)))
         while True:
-            click = random.randint(int(start),int(end))
-            now = int(time.time())
-            if now > int(token["exp"]):
-                self.on_login(tg_data)
-                token = self.refresh_token()
-            res = self.click(token['token'],click,min_energy)
-            print('~' * 50)
-            if res == 'energy_limit':
-                self.log(f'{kuning}limit energy reacted !')
-                self.log(f'{kuning}active sleepzz mode zzzzzzz.... !')
-                print('~' * 50)
-                self.countdown(int(sleep))
-                continue
+            res = self.http(
+                "https://db4.onchaincoin.io/api/validate", headers, json.dumps(data)
+            )
+            if '"success":true' in res.text:
+                token = res.json()["token"]
+                self.log(f"{hijau}success login !")
+                open("token", "w").write(token)
+                return True
 
-            if res == 'insufficient_energy':
-                self.log(f'{kuning}insufficient energy reacted !')
-                self.log(f'{kuning}active sleepzz mode zzzzzzz.... !')
-                print('~' * 50)
-                self.countdown(int(sleep))
-                continue
-            
-            if isinstance(res,bool):
-                self.countdown(int(interval))
-                continue
+            self.log(
+                f"{merah}failed login with http status code : {kuning}{res.status_code}"
+            )
+            self.log(f"{kuning}trying login again !")
+            continue
 
-            
+    def http(self, url, headers, data=None):
+        while True:
+            try:
+                if data is None:
+                    res = requests.get(url, headers=headers)
+                    return res
+
+                res = requests.post(url, headers=headers, data=data)
+                return res
+            except (
+                requests.exceptions.ConnectionError,
+                requests.exceptions.ConnectTimeout,
+                requests.exceptions.ReadTimeout,
+                requests.exceptions.SSLError,
+            ):
+                self.log(f"{merah}connection error !")
+
+
 if __name__ == "__main__":
     try:
-        app = OnchainBot()
+        app = Onchain()
         app.main()
     except KeyboardInterrupt:
         sys.exit()
