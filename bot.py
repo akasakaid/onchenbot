@@ -122,6 +122,8 @@ class Onchain:
         if ua.find('#') >= 0:
             self.log(f"{kuning}please, fill your user-agent to user-agent file !")
             sys.exit()
+        
+        self.headers['user-agent'] = ua
 
         token = open("token", "r").read()
         if len(token) <= 0:
