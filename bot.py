@@ -118,7 +118,7 @@ class Onchain:
             self.log(f"{kuning}token file is not found !")
             open("token", "a")
             
-        ua = open('user-agent','r').read()
+        ua = open('user-agent','r').read().splitlines()[0]
         if ua.find('#') >= 0:
             self.log(f"{kuning}please, fill your user-agent to user-agent file !")
             sys.exit()
@@ -189,6 +189,11 @@ class Onchain:
             headers,
             json.dumps(data),
         )
+        if "Insufficient energy" in res.text:
+            self.log(f"{kuning}Insufficient energy")
+            self.countdown(cfg.sleep)
+            return True
+        
         if '"clicks"' in res.text:
             clicks = res.json()["clicks"]
             energy = res.json()["energy"]
@@ -211,10 +216,6 @@ class Onchain:
 
             return True
 
-        if "Insufficient energy" in res.text:
-            self.log(f"{kuning}Insufficient energy")
-            self.countdown(cfg.sleep)
-            return True
 
         self.log(
             f"{merah}failed to click, http status code : {kuning}{res.status_code}"
