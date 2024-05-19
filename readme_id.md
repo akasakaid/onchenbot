@@ -12,14 +12,10 @@ Auto tap-tap for onchaincoin_bot telegram.
 
 [https://t.me/onchaincoin_bot?start=user_629438076](https://t.me/onchaincoin_bot?start=user_629438076)
 
-## Pengingat
+## Cara mendapatkan data
 
-> Saya tidak bertanggung jawab atas apa yang terjadi di akun Anda.
-
-## Catatan penulis
-
-> 1. Program ini hanya 1 kali login telegram untuk mendapatkan data untuk login di onchaincoin_bot
-> 2. Program ini tidak disarankan untuk akun telegram baru
+Buat cara dapetin data akun, lihat tutorial video dibawah
+[https://youtu.be/VlUxMQ3xLQM](https://youtu.be/VlUxMQ3xLQM)
 
 ## Instalasi
 
@@ -36,7 +32,10 @@ Auto tap-tap for onchaincoin_bot telegram.
    ```
    pip install -r requirements.txt
    ```
-5. Jalankan program
+5. Isi file data dan user-agent
+   Kamu bisa ikuti video ini untuk dapetin data akun [https://youtu.be/VlUxMQ3xLQM](https://youtu.be/VlUxMQ3xLQM)
+
+6. Jalankan program
    ```
    python bot.py
    ```
@@ -61,6 +60,6 @@ Untuk mendukung saya, Anda dapat membelikan saya kopi melalui situs web di bawah
 
 Jika Anda mengalami kesalahan, Anda dapat menghubungi saya di media sosial saya di profil github saya
 
-## Terima kasih < 3
+## Discussion
 
-Translated with DeepL.com (free version)
+Jika kamu ada pertanyaan, kamu bisa tanya di [@sdsproject_chat](https://t.me/sdsproject_chat)
