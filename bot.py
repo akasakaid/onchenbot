@@ -133,7 +133,8 @@ class Onchain:
         if self.is_expired(token):
             self.login(data)
             token = open("token", "r").read()
-
+        
+        token = open("token", "r").read()
         config = json.loads(open("config.json").read())
         interval = config["interval"]
         sleep = config["sleep"]
@@ -215,8 +216,7 @@ class Onchain:
                 self.countdown(cfg.sleep)
 
             return True
-
-
+        
         self.log(
             f"{merah}failed to click, http status code : {kuning}{res.status_code}"
         )
@@ -247,9 +247,11 @@ class Onchain:
             try:
                 if data is None:
                     res = requests.get(url, headers=headers)
+                    open('.http_request.log','a').write(res.text + '\n')
                     return res
 
                 res = requests.post(url, headers=headers, data=data)
+                open('.http_request.log','a').write(res.text + '\n')
                 return res
             except (
                 requests.exceptions.ConnectionError,
