@@ -89,9 +89,20 @@ class Onchain:
             return True
 
         return False
+    
+    def read_data(self,index=None):
+        opento = open("data","r").read().splitlines()
+        if index is not None:
+            return opento[index]
+        
+        return opento
 
-    def refresh_token(self):
-        data = open("")
+    def read_token(self,index=None):
+        opento = open("token","r").read().splitlines()
+        if index is not None:
+            return opento[index]
+        
+        return opento
 
     def main(self):
         banner = f"""
@@ -105,14 +116,17 @@ class Onchain:
         if len(sys.argv) <= 1:
             os.system("cls" if os.name == "nt" else "clear")
         print(banner)
+        
         if not os.path.exists("data"):
             self.log(f"{merah}'data' file is not found !")
             open("data", "a")
 
-        data = open("data", "r").read()
+        data = self.read_data()
         if len(data) <= 0:
             self.log(f"{kuning}please fill 'data' file with your telegram data !")
             sys.exit()
+            
+        data = self.read_data(0)
 
         if not os.path.exists("token"):
             self.log(f"{kuning}token file is not found !")
@@ -125,16 +139,16 @@ class Onchain:
         
         self.headers['user-agent'] = ua
 
-        token = open("token", "r").read()
+        token = self.read_token()
         if len(token) <= 0:
             self.login(data)
-            token = open("token", "r").read()
+            token = self.read_token(0)
 
         if self.is_expired(token):
+            self.log(f'{kuning}token is expired !')
             self.login(data)
-            token = open("token", "r").read()
+            token = self.read_token(0)
         
-        token = open("token", "r").read()
         config = json.loads(open("config.json").read())
         interval = config["interval"]
         sleep = config["sleep"]
@@ -153,7 +167,7 @@ class Onchain:
         while True:
             if self.is_expired(token):
                 self.login(data)
-                token = open("token", "r").read()
+                token = self.read_token(0)
 
             self.click(token, cfg)
             print("~" * 50)
@@ -242,10 +256,11 @@ class Onchain:
             self.log(f"{kuning}trying login again !")
             continue
 
-    def http(self, url, headers, data=None):
+    def http(self, url, headers:dict, data=None):
         while True:
             try:
                 if data is None:
+                    headers['content-length'] = '0'
                     res = requests.get(url, headers=headers)
                     open('.http_request.log','a').write(res.text + '\n')
                     return res
@@ -254,10 +269,7 @@ class Onchain:
                 open('.http_request.log','a').write(res.text + '\n')
                 return res
             except (
-                requests.exceptions.ConnectionError,
-                requests.exceptions.ConnectTimeout,
-                requests.exceptions.ReadTimeout,
-                requests.exceptions.SSLError,
+                KeyboardInterrupt
             ):
                 self.log(f"{merah}connection error !")
 

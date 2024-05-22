@@ -7,3 +7,4 @@ tg_data
 token
 token.json
 data
+*.log
