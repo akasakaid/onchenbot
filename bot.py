@@ -143,6 +143,8 @@ class Onchain:
         if len(token) <= 0:
             self.login(data)
             token = self.read_token(0)
+        
+        token = self.read_token(0)
 
         if self.is_expired(token):
             self.log(f'{kuning}token is expired !')
